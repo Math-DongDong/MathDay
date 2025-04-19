@@ -1,0 +1,29 @@
+import streamlit as st
+
+#페이지 환경 설정############################################################################################################
+st.set_page_config(
+    initial_sidebar_state="expanded",
+    #initial_sidebar_state="collapsed",  #사이드바 시작시 닫기
+    page_icon="./images/파이.png",     # 또는 ".\이미지폴더\파일명.확장자" - 실제 파일 경로 확인 필요
+    page_title="Math Day!" # 브라우져 제목
+)
+
+st.markdown("<h1 style='text-align: center; margin-bottom: 10px;'>Math Day!</h1>", unsafe_allow_html=True)
+st.write("---") #수평선
+st.write("## π×10쪽 펼쳐라!")
+
+#화면 분할
+col1, col2 = st.columns(2)  #또는 [1,3]이라 입력하면 1:3으로 화면 분할
+with col1:
+    st.write("##### [게임 방법]")
+    """
+    - 한 모둠씩 앞으로 나온다.
+    - **책을 펼쳐서 31±4쪽(27~35쪽)이 나오면 성공!** 
+    """
+with col2:
+    st.write("##### [시상]")
+    """
+    - **31±4쪽을 성공한 학생** 초코파이 1개
+
+    """
+st.write("---")
