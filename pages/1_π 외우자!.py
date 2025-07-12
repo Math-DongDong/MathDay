@@ -68,8 +68,6 @@ st.write("---") #수평선
 ############################################################################################################
 # 파이 값 및 표시 영역 설정(인터렉티브 화면)
 ############################################################################################################
-st.markdown("<h1 style='text-align: center; margin-bottom: 10px;'>< 외워야 할 π 값 ></h1>", unsafe_allow_html=True)
-
 # 파이 값 표시 영역
 if st.session_state.timer_active:
     st.markdown(st.session_state.pi_chunk_formatted)
