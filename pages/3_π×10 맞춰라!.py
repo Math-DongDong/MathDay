@@ -100,62 +100,61 @@ with reset_button_col:
         initialize_game()
         st.rerun()
 
-# --- [핵심 수정] 3단 메인 레이아웃 ---
-team_name_col, slider_col, result_col = st.columns([1, 3, 1.5]) # 결과 컬럼을 조금 더 넓게
+# --- [핵심 수정] 각 행별로 3열 레이아웃 (모둠명 / 슬라이더 / 결과) ---
+st.write("")
+for team_id in range(1, NUM_TEAMS + 1):
+    col_name, col_slider, col_result = st.columns([1, 6, 2])
 
-# --- 왼쪽: 모둠 이름 ---
-with team_name_col:
-    st.write("") # 컬럼 상단 여백
-    for i in range(NUM_TEAMS):
-        team_id = i + 1
+    with col_name:
         st.markdown(f'<div class="team-label">{team_id}모둠</div>', unsafe_allow_html=True)
 
-# --- 중간: 슬라이더 ---
-with slider_col:
-    slider_values = {}
-    for i in range(NUM_TEAMS):
-        team_id = i + 1
-        value = st.slider(
-            label=f"hidden_label_{team_id}", # 레이블은 숨겨지므로 고유 ID만 부여
+    with col_slider:
+        # 초기값은 세션에 저장된 값 또는 max의 절반
+        initial = st.session_state.slider_values.get(team_id, st.session_state.max_value / 2.0)
+        st.slider(
+            label=f"hidden_label_{team_id}",
             min_value=0.0,
             max_value=st.session_state.max_value,
-            value=st.session_state.slider_values.get(team_id, st.session_state.max_value / 2.0),
+            value=initial,
             step=0.1,
             key=f"slider_{team_id}",
-            label_visibility="hidden" 
+            label_visibility="hidden"
         )
-        slider_values[team_id] = value
 
-with submit_button_col:
-    if st.button("결과 확인", type="primary", use_container_width=True):
-        st.session_state.submitted = True
-        st.session_state.slider_values = slider_values
-        calculate_scores() # 버튼 클릭 시 점수 계산
-        st.rerun()
-
-# --- 오른쪽: 결과 표시 ---
-with result_col:
-    if st.session_state.submitted:
-        st.markdown(f'<div class="team-label" style="color: green; font-weight: bold;">[정답: {TARGET_NUMBER:.1f}]</div>', unsafe_allow_html=True)
-
-        medals = ["🥇", "🥈", "🥉"]
-        
-        for i in range(NUM_TEAMS):
-            team_id = i + 1
-            chosen_value = st.session_state.slider_values[team_id]
-            error = abs(chosen_value - TARGET_NUMBER)
-            score = st.session_state.scores[team_id]
-            
-            result_str = ""
+    with col_result:
+        # 제출 전에는 현재 선택값을, 제출 후에는 점수/메달을 보여줍니다.
+        if st.session_state.get('submitted'):
+            chosen_value = st.session_state.slider_values.get(team_id, st.session_state.get(f"slider_{team_id}", 0.0))
             if chosen_value > TARGET_NUMBER:
                 result_str = "❌ 0점 (초과)"
             else:
-                # 점수에 따라 메달 이모티콘 추가
-                if score == 3: result_str = f"🥇 {score}점"
-                elif score == 2: result_str = f"🥈 {score}점"
-                elif score == 1: result_str = f"🥉 {score}점"
-                else: result_str = "0점"
-                
+                score = st.session_state.scores.get(team_id, 0)
+                if score == 3:
+                    result_str = f"🥇 {score}점"
+                elif score == 2:
+                    result_str = f"🥈 {score}점"
+                elif score == 1:
+                    result_str = f"🥉 {score}점"
+                else:
+                    result_str = "0점"
+                error = abs(chosen_value - TARGET_NUMBER)
                 result_str += f" (오차: {error:.1f})"
 
             st.markdown(f'<div class="result-text">{result_str}</div>', unsafe_allow_html=True)
+        else:
+            # 제출 전에는 현재 슬라이더 값을 간단히 표시
+            current = st.session_state.get(f"slider_{team_id}", initial)
+            st.markdown(f'<div class="result-text">선택: {current:.1f}</div>', unsafe_allow_html=True)
+
+# 제출 버튼은 모든 행 아래에 하나만 배치
+st.write("")
+submit_col_left, submit_col_center, submit_col_right = st.columns([1, 2, 1])
+with submit_col_center:
+    if st.button("결과 확인", type="primary", use_container_width=True):
+        # 각 슬라이더 키에서 값을 모아 세션의 slider_values에 저장
+        for tid in range(1, NUM_TEAMS + 1):
+            st.session_state.slider_values[tid] = st.session_state.get(f"slider_{tid}", st.session_state.slider_values.get(tid, st.session_state.max_value / 2.0))
+
+        st.session_state.submitted = True
+        calculate_scores()
+        st.rerun()
