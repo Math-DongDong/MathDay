@@ -115,7 +115,7 @@ def calculate_scores():
 ############################################################################################################
 # UI 구성
 ############################################################################################################
-st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>🎯 π×10 맞추기!</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; margin-bottom: 20px;'>π×10 맞추기!</h1>", unsafe_allow_html=True)
 
 info_col, reset_button_col, submit_button_col = st.columns([3, 1, 1])
 with info_col:
