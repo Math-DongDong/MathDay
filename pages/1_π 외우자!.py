@@ -8,7 +8,6 @@ from pathlib import Path # 경로 관리를 위해 사용
 ############################################################################################################
 st.set_page_config(
     initial_sidebar_state="expanded",
-    #initial_sidebar_state="collapsed",  #사이드바 시작시 닫기
     page_icon="./images/파이.png",     # 또는 ".\이미지폴더\파일명.확장자" - 실제 파일 경로 확인 필요
     page_title="Math Day!" # 브라우져 제목
 )

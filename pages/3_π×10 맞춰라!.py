@@ -15,31 +15,56 @@ st.set_page_config(
 
 # --- CSS 스타일 ---
 # 슬라이더 툴팁 숨기기 및 모둠 이름 세로 정렬을 위한 스타일
-st.markdown("""
-<style>
-[data-testid="stSliderThumbValue"] { color: transparent; }
-[data-testid="stSliderThumbValue"]::before {
-    content: '??'; color: red; font-size: 14px; font-weight: bold;
-    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    width: 100%; text-align: center;
-}
-.team-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 49px; /* 슬라이더 높이와 유사하게 맞춰 정렬 */
-    font-weight: bold;
-    font-size: 1.1em;
-}
-.result-text {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 49px;
-    font-size: 1.1em;
-}
-</style>
-""", unsafe_allow_html=True)
+if st.session_state.get('submitted'):
+    # 제출된 상태: 실제 슬라이더 값(기본 DOM 값)을 보이게 함, ::before 내용 제거
+    st.markdown("""
+    <style>
+    [data-testid="stSliderThumbValue"] { color: red; font-weight: bold; font-size: 14px; }
+    [data-testid="stSliderThumbValue"]::before { content: ''; }
+    .team-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 49px; /* 슬라이더 높이와 유사하게 맞춰 정렬 */
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    .result-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 49px;
+        font-size: 1.1em;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    # 제출 전: 툴팁을 ??로 가리고 실제 값은 보이지 않게 함
+    st.markdown("""
+    <style>
+    [data-testid="stSliderThumbValue"] { color: transparent; }
+    [data-testid="stSliderThumbValue"]::before {
+        content: '??'; color: red; font-size: 14px; font-weight: bold;
+        position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+        width: 100%; text-align: center;
+    }
+    .team-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 49px; /* 슬라이더 높이와 유사하게 맞춰 정렬 */
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    .result-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 49px;
+        font-size: 1.1em;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 
 ############################################################################################################
@@ -99,6 +124,18 @@ with reset_button_col:
     if st.button("🔄 초기화", use_container_width=True):
         initialize_game()
         st.rerun()
+with submit_button_col:
+    if st.button("결과 확인", type="primary", use_container_width=True):
+        # 각 슬라이더 키에서 값을 모아 세션의 slider_values에 저장
+        for tid in range(1, NUM_TEAMS + 1):
+            st.session_state.slider_values[tid] = st.session_state.get(
+                f"slider_{tid}",
+                st.session_state.slider_values.get(tid, st.session_state.max_value / 2.0),
+            )
+
+        st.session_state.submitted = True
+        calculate_scores()
+        st.rerun()
 
 # --- [핵심 수정] 각 행별로 3열 레이아웃 (모둠명 / 슬라이더 / 결과) ---
 st.write("")
@@ -142,22 +179,10 @@ for team_id in range(1, NUM_TEAMS + 1):
 
             st.markdown(f'<div class="result-text">{result_str}</div>', unsafe_allow_html=True)
         else:
-            # 제출 전에는 현재 슬라이더 값을 간단히 표시
-            current = st.session_state.get(f"slider_{team_id}", initial)
-            st.markdown(f'<div class="result-text">선택: {current:.1f}</div>', unsafe_allow_html=True)
+            # 제출 전에는 결과(값/점수)를 숨깁니다.
+            st.markdown(f'<div class="result-text"></div>', unsafe_allow_html=True)
 
-# 제출 버튼은 모든 행 아래에 하나만 배치
-st.write("")
-submit_col_left, submit_col_center, submit_col_right = st.columns([1, 2, 1])
-with submit_col_center:
-    if st.button("결과 확인", type="primary", use_container_width=True):
-        # 각 슬라이더 키에서 값을 모아 세션의 slider_values에 저장
-        for tid in range(1, NUM_TEAMS + 1):
-            st.session_state.slider_values[tid] = st.session_state.get(f"slider_{tid}", st.session_state.slider_values.get(tid, st.session_state.max_value / 2.0))
-
-        st.session_state.submitted = True
-        calculate_scores()
-        st.rerun()
+# 제출 버튼은 상단의 초기화 버튼 오른쪽에 배치했습니다.
 
 ############################################################################################################
 # 게임 방법 및 시상UI
